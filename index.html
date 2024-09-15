@@ -42,7 +42,7 @@
                 }
 
                 try {
-                    const writer = new NDEFWriter();
+                    const writer = new NDEFReader();
                     await writer.write({ records: [{ recordType: "text", data: data }] });
                     nfcMessage.textContent = `Dato escrito exitosamente en el tag NFC: ${data}`;
                 } catch (error) {
