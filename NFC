@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leer y Escribir Tag NFC</title>
+</head>
+<body>
+
+    <h2>Leer y Escribir Tag NFC</h2>
+
+    <!-- Sección para escribir en un tag NFC -->
+    <div>
+        <label for="nfcData">Dato para escribir en NFC:</label>
+        <input type="text" id="nfcData" name="nfcData" />
+        <button id="writeNfcButton">Escribir en NFC</button>
+    </div>
+
+    <!-- Sección para leer desde un tag NFC -->
+    <div>
+        <button id="readNfcButton">Leer desde NFC</button>
+        <p id="nfcOutput"></p>
+    </div>
+
+    <!-- Sección para mostrar mensajes de error o éxito -->
+    <div id="nfcMessage"></div>
+
+    <script>
+        // Verifica si el navegador soporta la WebNFC API
+        if ('NDEFReader' in window) {
+            const writeButton = document.getElementById('writeNfcButton');
+            const readButton = document.getElementById('readNfcButton');
+            const nfcOutput = document.getElementById('nfcOutput');
+            const nfcMessage = document.getElementById('nfcMessage');
+
+            // Función para escribir en el NFC
+            writeButton.addEventListener('click', async () => {
+                const data = document.getElementById('nfcData').value;
+                if (!data) {
+                    nfcMessage.textContent = "Por favor, ingresa algún dato para escribir.";
+                    return;
+                }
+
+                try {
+                    const writer = new NDEFWriter();
+                    await writer.write({ records: [{ recordType: "text", data: data }] });
+                    nfcMessage.textContent = `Dato escrito exitosamente en el tag NFC: ${data}`;
+                } catch (error) {
+                    nfcMessage.textContent = `Error al escribir en el NFC: ${error}`;
+                }
+            });
+
+            // Función para leer desde el NFC
+            readButton.addEventListener('click', async () => {
+                try {
+                    const reader = new NDEFReader();
+                    await reader.scan();
+                    nfcMessage.textContent = "Esperando a que se acerque un tag NFC...";
+                    reader.onreading = event => {
+                        const ndefMessage = event.message;
+                        ndefMessage.records.forEach(record => {
+                            if (record.recordType === "text") {
+                                const decoder = new TextDecoder();
+                                const text = decoder.decode(record.data);
+                                nfcOutput.textContent = `Dato leído desde el tag NFC: ${text}`;
+                                nfcMessage.textContent = "Lectura exitosa.";
+                            }
+                        });
+                    };
+                } catch (error) {
+                    nfcMessage.textContent = `Error al leer desde el NFC: ${error}`;
+                }
+            });
+        } else {
+            nfcMessage.textContent = "La API WebNFC no es compatible con este navegador.";
+        }
+    </script>
+
+</body>
+</html>
